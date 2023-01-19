@@ -9,6 +9,9 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     const users = await User.find();
     return res.status(200).send(users);
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({ message: 'Ошибка валидации' });
+    }
     return next(error);
   }
 };
@@ -20,7 +23,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     return res.status(201).send(newUser);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
     return next(error);
   }
@@ -51,7 +54,7 @@ export const updateUser = async (req: RequestCastom, res: Response, next: NextFu
     return res.status(200).send(user);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
     return next(error);
   }
@@ -69,7 +72,7 @@ export const updateAvatar = async (req: RequestCastom, res: Response, next: Next
     return res.status(200).send(user);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
     return next(error);
   }

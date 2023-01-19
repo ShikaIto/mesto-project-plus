@@ -6,7 +6,7 @@ import NotFoundError from '../errors/not-found-err';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const cards = await Card.find().populate('owner');
+    const cards = await Card.find();
     return res.status(200).send(cards);
   } catch (error) {
     return next(error);
@@ -17,11 +17,10 @@ export const createCard = async (req: RequestCastom, res: Response, next: NextFu
   try {
     const { name, link } = req.body;
     const newCard = await Card.create({ name, link, owner: req.user?._id });
-    await newCard.populate('owner');
     return res.status(201).send(newCard);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
 
     return next(error);
@@ -38,6 +37,9 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
     await card.remove();
     return res.status(200).send({ message: 'Пост удален' });
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({ message: 'Ошибка валидации' });
+    }
     return next(error);
   }
 };
@@ -51,11 +53,13 @@ export const likeCard = async (req: RequestCastom, res: Response, next: NextFunc
     if (!card) {
       throw new NotFoundError('Карточка не найдена');
     }
-    const result = await Card.findById(cardId, 'likes -_id').populate('likes');
-    return res.status(200).send(result);
+    return res.status(200).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
+    }
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
     return next(error);
   }
@@ -70,11 +74,13 @@ export const dislikeCard = async (req: RequestCastom, res: Response, next: NextF
     if (!card) {
       throw new NotFoundError('Карточка не найдена');
     }
-    const result = await Card.findById(cardId, 'likes -_id').populate('likes');
-    return res.status(200).send(result);
+    return res.status(200).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+      return res.status(400).send({ message: 'Ошибка валидации' });
+    }
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({ message: 'Ошибка валидации' });
     }
     return next(error);
   }
