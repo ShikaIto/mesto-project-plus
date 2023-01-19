@@ -1,6 +1,5 @@
-import mongoose from "mongoose";
-import { ICard } from "types";
-import { userSchema } from "./user";
+import mongoose from 'mongoose';
+import { ICard } from '../types';
 
 const cardSchema = new mongoose.Schema<ICard>({
   name: {
@@ -14,19 +13,19 @@ const cardSchema = new mongoose.Schema<ICard>({
     required: true,
   },
   owner: {
-    userSchema,
     type: mongoose.Types.ObjectId,
+    ref: 'user',
     required: true,
   },
   likes: [{
-    userSchema,
     type: mongoose.Types.ObjectId,
+    ref: 'user',
     default: [],
   }],
   createdAt: {
     type: Date,
     default: Date.now(),
-  }
+  },
 });
 
 export default mongoose.model<ICard>('card', cardSchema);

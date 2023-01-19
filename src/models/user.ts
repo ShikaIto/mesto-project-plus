@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { IUser } from "types";
+import mongoose from 'mongoose';
+import { IUser } from '../types';
 
 export const userSchema = new mongoose.Schema<IUser>({
   name: {
@@ -17,7 +17,7 @@ export const userSchema = new mongoose.Schema<IUser>({
   avatar: {
     type: String,
     required: true,
-  }
+  },
 });
 
 export default mongoose.model<IUser>('user', userSchema);

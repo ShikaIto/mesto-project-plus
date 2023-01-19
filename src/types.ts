@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 export interface IUser {
   name: String,
   about: String,
@@ -10,4 +12,14 @@ export interface ICard {
   owner: IUser,
   likes: IUser[],
   createdAt: Date
+}
+
+export interface RequestCastom extends Request {
+  user?: {
+    _id: string
+  }
+}
+
+export interface ErrorCastom extends Error {
+  statusCode?: number
 }

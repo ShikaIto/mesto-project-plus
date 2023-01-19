@@ -1,29 +1,76 @@
-import { Request, Response } from "express";
-import User from "models/user";
+import { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
+import { RequestCastom } from '../types';
+import NotFoundError from '../errors/not-found-err';
+import User from '../models/user';
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find();
     return res.status(200).send(users);
   } catch (error) {
-    return res.status(500).send({ massage: 'Ошибка на стороне сервера' });
+    return next(error);
   }
-}
+};
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const newUser = await User.create(req.body);
+    const { name, about, avatar } = req.body;
+    const newUser = await User.create({ name, about, avatar });
     return res.status(201).send(newUser);
   } catch (error) {
-    return res.status(500).send({ massage: 'Ошибка на стороне сервера' });
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+    }
+    return next(error);
   }
-}
+};
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.find(req.body);
+    const id = req.params.userId;
+    const user = await User.findById(id);
+    if (!user) {
+      throw new NotFoundError('пользователь не найден');
+    }
     return res.status(200).send(user);
   } catch (error) {
-    return res.status(500).send({ massage: 'Ошибка на стороне сервера' });
+    return next(error);
   }
-}
+};
+
+export const updateUser = async (req: RequestCastom, res: Response, next: NextFunction) => {
+  try {
+    const id = req.user?._id;
+    const { name, about } = req.body;
+    const user = await User
+      .findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true });
+    if (!user) {
+      throw new NotFoundError('пользователь не найден');
+    }
+    return res.status(200).send(user);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+    }
+    return next(error);
+  }
+};
+
+export const updateAvatar = async (req: RequestCastom, res: Response, next: NextFunction) => {
+  try {
+    const id = req.user?._id;
+    const { avatar } = req.body;
+    const user = await User
+      .findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true });
+    if (!user) {
+      throw new NotFoundError('пользователь не найден');
+    }
+    return res.status(200).send(user);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return res.status(400).send({ ...error, message: 'Ошибка валидации' });
+    }
+    return next(error);
+  }
+};
