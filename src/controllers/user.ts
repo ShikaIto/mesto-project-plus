@@ -9,9 +9,6 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     const users = await User.find();
     return res.status(200).send(users);
   } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
-    }
     return next(error);
   }
 };
@@ -38,6 +35,9 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
     }
     return res.status(200).send(user);
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).send({ message: 'Ошибка валидации' });
+    }
     return next(error);
   }
 };
