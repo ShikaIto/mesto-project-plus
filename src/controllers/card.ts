@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { RequestCastom } from '../types';
 import Card from '../models/card';
 import NotFoundError from '../errors/not-found-err';
+import ValidationError from '../errors/validation-err';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,29 +17,36 @@ export const getCards = async (req: Request, res: Response, next: NextFunction) 
 export const createCard = async (req: RequestCastom, res: Response, next: NextFunction) => {
   try {
     const { name, link } = req.body;
-    const newCard = await Card.create({ name, link, owner: req.user?._id });
+    const newCard = await Card.create({ name, link, owner: req.user });
     return res.status(201).send(newCard);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
 
     return next(error);
   }
 };
 
-export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteCard = async (req: RequestCastom, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.cardId;
-    const card = await Card.findById(id);
+    const { cardId } = req.params;
+    const userId = req.user;
+    const card = await Card.findById(cardId);
+
     if (!card) {
-      throw new NotFoundError('карточка не найдена');
+      throw new NotFoundError('Карточка не найдена');
     }
+
+    if (card.owner.toString() !== userId) {
+      throw new ValidationError('Нелья удалять чужие карточки');
+    }
+
     await card.remove();
     return res.status(200).send({ message: 'Пост удален' });
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
     return next(error);
   }
@@ -47,7 +55,7 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
 export const likeCard = async (req: RequestCastom, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
-    const userId = req.user?._id;
+    const userId = req.user;
     const card = await Card
       .findByIdAndUpdate(cardId, { $addToSet: { likes: userId } }, { new: true });
     if (!card) {
@@ -56,10 +64,10 @@ export const likeCard = async (req: RequestCastom, res: Response, next: NextFunc
     return res.status(200).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
     return next(error);
   }
@@ -68,7 +76,7 @@ export const likeCard = async (req: RequestCastom, res: Response, next: NextFunc
 export const dislikeCard = async (req: RequestCastom, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
-    const userId = req.user?._id;
+    const userId = req.user;
     const card = await Card
       .findByIdAndUpdate(cardId, { $pull: { likes: userId } }, { new: true });
     if (!card) {
@@ -77,10 +85,10 @@ export const dislikeCard = async (req: RequestCastom, res: Response, next: NextF
     return res.status(200).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(400).send({ message: 'Ошибка валидации' });
+      throw new ValidationError('Ошибка валидации');
     }
     return next(error);
   }
