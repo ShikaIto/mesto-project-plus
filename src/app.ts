@@ -12,7 +12,8 @@ import { requestLogger, errorLogger } from './middlewares/logger';
 
 dotenv.config();
 
-const { PORT, MONGOURL } = process.env;
+const { PORT = 3000 } = process.env;
+const { MONGOURL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(cookieParser());
 
 app.use(json());
 
-mongoose.connect('mongodb://158.160.116.43:27017/mestodb ');
+mongoose.connect(MONGOURL);
 
 app.use(requestLogger);
 
@@ -67,6 +68,6 @@ app.use(errorLogger);
 app.use(errors());
 app.use(error);
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
